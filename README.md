@@ -1,2 +1,2 @@
 # HABorysowskiAertecnica
-Aertecnica aka Borysowski central vacuum integration into Home Assistant 
+Aertecnica aka Borysowski central vacuum integration for Home Assistant 
