@@ -1,0 +1,53 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Wybierz typ połączenia",
+        "description": "Wybierz sposób połączenia z centralnym odkurzaczem Aertecnica.",
+        "data": {
+          "modbus_type": "Typ połączenia"
+        }
+      },
+      "rtu": {
+        "title": "Konfiguracja Modbus RTU",
+        "description": "Skonfiguruj połączenie szeregowe z urządzeniem Aertecnica.",
+        "data": {
+          "serial_port": "Port szeregowy",
+          "baudrate": "Prędkość transmisji",
+          "slave_id": "ID urządzenia",
+          "scan_interval": "Interwał odświeżania (sekundy)",
+          "name": "Nazwa"
+        }
+      },
+      "tcp": {
+        "title": "Konfiguracja Modbus TCP",
+        "description": "Skonfiguruj połączenie sieciowe z urządzeniem Aertecnica.",
+        "data": {
+          "host": "Adres IP",
+          "port": "Port",
+          "slave_id": "ID urządzenia",
+          "scan_interval": "Interwał odświeżania (sekundy)",
+          "name": "Nazwa"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Nie udało się połączyć z urządzeniem. Sprawdź ustawienia i spróbuj ponownie.",
+      "unknown": "Wystąpił nieoczekiwany błąd."
+    },
+    "abort": {
+      "already_configured": "To urządzenie jest już skonfigurowane."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Konfiguracja opcji",
+        "description": "Skonfiguruj zaawansowane opcje urządzenia Aertecnica.",
+        "data": {
+          "scan_interval": "Interwał odświeżania (sekundy)"
+        }
+      }
+    }
+  }
+}

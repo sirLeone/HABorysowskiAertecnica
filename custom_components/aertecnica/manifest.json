@@ -1,0 +1,12 @@
+{
+  "domain": "aertecnica",
+  "name": "Aertecnica Central Vacuum",
+  "codeowners": ["@sirLeone"],
+  "config_flow": true,
+  "documentation": "https://github.com/sirLeone/HABorysowskiAertecnica",
+  "issue_tracker": "https://github.com/sirLeone/HABorysowskiAertecnica/issues",
+  "requirements": ["pymodbus>=3.5.0"],
+  "version": "0.1.0",
+  "iot_class": "local_polling",
+  "integration_type": "device"
+}

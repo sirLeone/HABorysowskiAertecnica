@@ -1,0 +1,53 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Select Connection Type",
+        "description": "Choose how to connect to your Aertecnica central vacuum system.",
+        "data": {
+          "modbus_type": "Connection Type"
+        }
+      },
+      "rtu": {
+        "title": "Configure Modbus RTU",
+        "description": "Configure the serial connection to your Aertecnica device.",
+        "data": {
+          "serial_port": "Serial Port",
+          "baudrate": "Baud Rate",
+          "slave_id": "Slave ID",
+          "scan_interval": "Scan Interval (seconds)",
+          "name": "Name"
+        }
+      },
+      "tcp": {
+        "title": "Configure Modbus TCP",
+        "description": "Configure the network connection to your Aertecnica device.",
+        "data": {
+          "host": "Host",
+          "port": "Port",
+          "slave_id": "Slave ID",
+          "scan_interval": "Scan Interval (seconds)",
+          "name": "Name"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to the device. Please check your settings and try again.",
+      "unknown": "Unexpected error occurred."
+    },
+    "abort": {
+      "already_configured": "This device is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Configure Options",
+        "description": "Configure advanced options for your Aertecnica device.",
+        "data": {
+          "scan_interval": "Scan Interval (seconds)"
+        }
+      }
+    }
+  }
+}
