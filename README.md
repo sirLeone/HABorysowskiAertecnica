@@ -3,7 +3,7 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
 [![License](https://img.shields.io/github/license/sirLeone/HABorysowskiAertecnica)](LICENSE)
 
-Home Assistant integration for Aertecnica central vacuum systems (known as Borysowski in Poland). This integration uses Modbus RTU/TCP protocol to communicate with the central vacuum unit.
+Home Assistant integration for Aertecnica central vacuum systems, sold under the **TUBO** (Tubò) brand — see [aertecnica.com](https://www.aertecnica.com/en/aertecnica-tubo) — and known as **Borysowski** in Poland. This integration uses Modbus RTU/TCP protocol to communicate with the central vacuum unit.
 
 **[Polish version / Wersja polska](README.pl.md)**
 
@@ -24,9 +24,11 @@ Home Assistant integration for Aertecnica central vacuum systems (known as Borys
 
 ## Supported Models
 
-- Aertecnica Perfect
-- Aertecnica Classic
+- Aertecnica TUBO Perfect
+- Aertecnica TUBO Classic
 - Compatible units sold as Borysowski in Poland
+
+Aertecnica central vacuum systems are marketed as **TUBO** (Tubò) — [product page](https://www.aertecnica.com/en/aertecnica-tubo), [Facebook](https://www.facebook.com/TubodiAertecnica).
 
 ## Installation
 
@@ -266,5 +268,5 @@ This is an unofficial integration not affiliated with Aertecnica S.p.A. Use at y
 
 ---
 
-**Aertecnica** is a trademark of Aertecnica S.p.A.
+**Aertecnica** and **TUBO** (Tubò) are trademarks of Aertecnica S.p.A.
 **Borysowski** is the brand name used in Poland for Aertecnica products.

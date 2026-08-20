@@ -2,7 +2,7 @@
 
 ## Wprowadzenie
 
-Integracja **Aertecnica Central Vacuum** umożliwia pełną kontrolę i monitorowanie centralnego odkurzacza firmy Aertecnica (znanego w Polsce jako **Borysowski**) w systemie Home Assistant. Wykorzystując protokół **Modbus RTU/TCP**, integracja zapewnia dostęp do wszystkich parametrów pracy urządzenia, umożliwiając automatyzację, monitorowanie i zdalne sterowanie.
+Integracja **Aertecnica Central Vacuum** umożliwia pełną kontrolę i monitorowanie centralnego odkurzacza firmy Aertecnica — sprzedawanego pod marką **TUBO** (Tubò), a w Polsce znanego jako **Borysowski** — w systemie Home Assistant. Wykorzystując protokół **Modbus RTU/TCP**, integracja zapewnia dostęp do wszystkich parametrów pracy urządzenia, umożliwiając automatyzację, monitorowanie i zdalne sterowanie.
 
 ## Krótki opis
 

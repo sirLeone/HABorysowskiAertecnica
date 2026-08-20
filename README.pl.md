@@ -3,7 +3,7 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
 [![License](https://img.shields.io/github/license/sirLeone/HABorysowskiAertecnica)](LICENSE)
 
-Integracja Home Assistant dla centralnych odkurzaczy Aertecnica (znanych w Polsce jako Borysowski). Integracja wykorzystuje protokół Modbus RTU/TCP do komunikacji z centralą odkurzacza.
+Integracja Home Assistant dla centralnych odkurzaczy Aertecnica, sprzedawanych pod marką **TUBO** (Tubò) — zobacz [aertecnica.com](https://www.aertecnica.com/en/aertecnica-tubo) — i znanych w Polsce jako **Borysowski**. Integracja wykorzystuje protokół Modbus RTU/TCP do komunikacji z centralą odkurzacza.
 
 **[English version / Wersja angielska](README.md)**
 
@@ -24,9 +24,11 @@ Integracja Home Assistant dla centralnych odkurzaczy Aertecnica (znanych w Polsc
 
 ## Obsługiwane modele
 
-- Aertecnica Perfect
-- Aertecnica Classic
+- Aertecnica TUBO Perfect
+- Aertecnica TUBO Classic
 - Kompatybilne urządzenia sprzedawane jako Borysowski w Polsce
+
+Centralne odkurzacze Aertecnica są sprzedawane pod marką **TUBO** (Tubò) — [strona produktu](https://www.aertecnica.com/en/aertecnica-tubo), [Facebook](https://www.facebook.com/TubodiAertecnica).
 
 ## Instalacja
 
@@ -266,5 +268,5 @@ To jest nieoficjalna integracja niezwiązana z Aertecnica S.p.A. Używasz na wł
 
 ---
 
-**Aertecnica** jest znakiem towarowym Aertecnica S.p.A.
+**Aertecnica** i **TUBO** (Tubò) są znakami towarowymi Aertecnica S.p.A.
 **Borysowski** jest nazwą marki używaną w Polsce dla produktów Aertecnica.
