@@ -1,25 +1,179 @@
 """Sensor platform for Aertecnica Central Vacuum."""
 from __future__ import annotations
 
-import logging
+from collections.abc import Callable
+from dataclasses import dataclass
 from typing import Any
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
+    SensorEntityDescription,
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import UnitOfTemperature
+from homeassistant.const import (
+    PERCENTAGE,
+    UnitOfPressure,
+    UnitOfTemperature,
+    UnitOfTime,
+)
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, SENSOR_TYPES
+from .const import DOMAIN
 from .coordinator import AertecnicaCoordinator
+from .entity import AertecnicaEntity
 
-_LOGGER = logging.getLogger(__name__)
+
+@dataclass(frozen=True, kw_only=True)
+class AertecnicaSensorEntityDescription(SensorEntityDescription):
+    """Describes an Aertecnica sensor."""
+
+    data_key: str
+    attrs_fn: Callable[[dict[str, Any]], dict[str, Any]] | None = None
+
+
+SENSOR_DESCRIPTIONS: tuple[AertecnicaSensorEntityDescription, ...] = (
+    AertecnicaSensorEntityDescription(
+        key="card_model",
+        name="Card Model",
+        data_key="card_model",
+        icon="mdi:information-outline",
+        attrs_fn=lambda data: {"model_id": data.get("card_model_id")},
+    ),
+    AertecnicaSensorEntityDescription(
+        key="card_hours",
+        name="Card Hours",
+        data_key="card_hours",
+        native_unit_of_measurement=UnitOfTime.HOURS,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        icon="mdi:clock-outline",
+    ),
+    AertecnicaSensorEntityDescription(
+        key="motor_hours",
+        name="Motor Hours",
+        data_key="motor_hours",
+        native_unit_of_measurement=UnitOfTime.HOURS,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        icon="mdi:engine-outline",
+    ),
+    AertecnicaSensorEntityDescription(
+        key="bag_hours",
+        name="Bag Hours",
+        data_key="bag_hours",
+        native_unit_of_measurement=UnitOfTime.HOURS,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        icon="mdi:air-filter",
+    ),
+    AertecnicaSensorEntityDescription(
+        key="filter_hours",
+        name="Filter Hours",
+        data_key="filter_hours",
+        native_unit_of_measurement=UnitOfTime.HOURS,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        icon="mdi:air-filter",
+    ),
+    AertecnicaSensorEntityDescription(
+        key="bag_level",
+        name="Bag Level",
+        data_key="bag_level",
+        icon="mdi:delete",
+        attrs_fn=lambda data: {
+            "prealarm": data.get("prealarm_full_bag"),
+            "lock": data.get("lock_full_bag"),
+        },
+    ),
+    AertecnicaSensorEntityDescription(
+        key="filter_level",
+        name="Filter Level",
+        data_key="filter_level",
+        icon="mdi:air-filter",
+        attrs_fn=lambda data: {
+            "prealarm": data.get("prealarm_dirty_filter"),
+            "lock": data.get("lock_dirty_filter"),
+        },
+    ),
+    AertecnicaSensorEntityDescription(
+        key="pressure_level",
+        name="Pressure Level",
+        data_key="pressure_level_name",
+        icon="mdi:gauge",
+        attrs_fn=lambda data: {
+            "pressure_1": data.get("pressure_1"),
+            "pressure_2": data.get("pressure_2"),
+            "pressure_diff": data.get("pressure_diff"),
+        },
+    ),
+    AertecnicaSensorEntityDescription(
+        key="pressure_1",
+        name="Pressure 1",
+        data_key="pressure_1",
+        native_unit_of_measurement=UnitOfPressure.MBAR,
+        device_class=SensorDeviceClass.PRESSURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        icon="mdi:gauge",
+    ),
+    AertecnicaSensorEntityDescription(
+        key="pressure_2",
+        name="Pressure 2",
+        data_key="pressure_2",
+        native_unit_of_measurement=UnitOfPressure.MBAR,
+        device_class=SensorDeviceClass.PRESSURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        icon="mdi:gauge",
+    ),
+    AertecnicaSensorEntityDescription(
+        key="pressure_diff",
+        name="Pressure Differential",
+        data_key="pressure_diff",
+        native_unit_of_measurement=UnitOfPressure.MBAR,
+        device_class=SensorDeviceClass.PRESSURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        icon="mdi:gauge",
+    ),
+    AertecnicaSensorEntityDescription(
+        key="temperature",
+        name="Temperature",
+        data_key="temperature",
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        icon="mdi:thermometer",
+        attrs_fn=lambda data: {
+            "prealarm_max_temp": data.get("prealarm_max_temp"),
+            "lock_max_temperature": data.get("lock_max_temperature"),
+            "temp_reset_prohibited": data.get("temp_reset_prohibited"),
+        },
+    ),
+    AertecnicaSensorEntityDescription(
+        key="motor_power",
+        name="Motor Power",
+        data_key="motor_power",
+        native_unit_of_measurement=PERCENTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+        icon="mdi:engine",
+        attrs_fn=lambda data: {
+            "motor_on": data.get("motor_on"),
+            "standby_active": data.get("standby_active"),
+            "pid_mode": data.get("pid_mode"),
+        },
+    ),
+    AertecnicaSensorEntityDescription(
+        key="pressure_setpoint",
+        name="Pressure Setpoint",
+        data_key="pressure_setpoint",
+        native_unit_of_measurement=UnitOfPressure.MBAR,
+        device_class=SensorDeviceClass.PRESSURE,
+        icon="mdi:target",
+    ),
+    AertecnicaSensorEntityDescription(
+        key="residual_max_time",
+        name="Residual Max Time",
+        data_key="residual_max_time",
+        icon="mdi:timer-outline",
+    ),
+)
 
 
 async def async_setup_entry(
@@ -30,131 +184,48 @@ async def async_setup_entry(
     """Set up Aertecnica sensors."""
     coordinator: AertecnicaCoordinator = hass.data[DOMAIN][entry.entry_id]
 
-    entities = []
-    for sensor_type, config in SENSOR_TYPES.items():
-        entities.append(AertecnicaSensor(coordinator, entry, sensor_type, config))
+    async_add_entities(
+        AertecnicaSensor(coordinator, entry, description)
+        for description in SENSOR_DESCRIPTIONS
+    )
 
-    async_add_entities(entities)
 
-
-class AertecnicaSensor(CoordinatorEntity[AertecnicaCoordinator], SensorEntity):
+class AertecnicaSensor(AertecnicaEntity, SensorEntity):
     """Representation of an Aertecnica sensor."""
+
+    entity_description: AertecnicaSensorEntityDescription
 
     def __init__(
         self,
         coordinator: AertecnicaCoordinator,
         entry: ConfigEntry,
-        sensor_type: str,
-        config: dict[str, Any],
+        description: AertecnicaSensorEntityDescription,
     ) -> None:
         """Initialize the sensor."""
-        super().__init__(coordinator)
-        self._sensor_type = sensor_type
-        self._config = config
-        self._attr_name = f"{entry.title} {config['name']}"
-        self._attr_unique_id = f"{entry.entry_id}_{sensor_type}"
-        self._attr_has_entity_name = False
-
-        # Set device class and state class
-        if config.get("device_class"):
-            self._attr_device_class = config["device_class"]
-        if config.get("state_class"):
-            self._attr_state_class = config["state_class"]
-
-        # Set unit of measurement
-        if config.get("unit"):
-            self._attr_native_unit_of_measurement = config["unit"]
-
-        # Set icon
-        if config.get("icon"):
-            self._attr_icon = config["icon"]
-
-        # Device info
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, entry.entry_id)},
-            name=entry.title,
-            manufacturer="Aertecnica",
-            model=coordinator.data.get("card_model", "Unknown") if coordinator.data else "Unknown",
-        )
+        super().__init__(coordinator, entry, description.key, description.name)
+        self.entity_description = description
 
     @property
     def native_value(self) -> Any:
         """Return the state of the sensor."""
         if not self.coordinator.data:
             return None
+        return self.coordinator.data.get(self.entity_description.data_key)
 
-        data = self.coordinator.data
-
-        # Map sensor types to data keys
-        sensor_mapping = {
-            "card_model": "card_model",
-            "card_hours": "card_hours",
-            "motor_hours": "motor_hours",
-            "bag_hours": "bag_hours",
-            "filter_hours": "filter_hours",
-            "bag_level": "bag_level",
-            "filter_level": "filter_level",
-            "pressure_level": "pressure_level_name",
-            "pressure_1": "pressure_1",
-            "pressure_2": "pressure_2",
-            "pressure_diff": "pressure_diff",
-            "temperature": "temperature",
-            "motor_power": "motor_power",
-            "pressure_setpoint": "pressure_setpoint",
-            "residual_max_time": "residual_max_time",
-        }
-
-        data_key = sensor_mapping.get(self._sensor_type)
-        if data_key:
-            value = data.get(data_key)
-
-            # Special handling for residual_max_time to update unit dynamically
-            if self._sensor_type == "residual_max_time":
-                unit = data.get("residual_max_time_unit", "s")
-                self._attr_native_unit_of_measurement = unit
-
-            return value
-
-        return None
+    @property
+    def native_unit_of_measurement(self) -> str | None:
+        """Return the unit of measurement."""
+        # The residual time unit depends on a device interpretation flag
+        if self.entity_description.key == "residual_max_time":
+            if not self.coordinator.data:
+                return None
+            return self.coordinator.data.get("residual_max_time_unit", "s")
+        return super().native_unit_of_measurement
 
     @property
     def extra_state_attributes(self) -> dict[str, Any] | None:
         """Return additional state attributes."""
-        if not self.coordinator.data:
+        attrs_fn = self.entity_description.attrs_fn
+        if attrs_fn is None or not self.coordinator.data:
             return None
-
-        data = self.coordinator.data
-        attributes = {}
-
-        # Add common attributes
-        if self._sensor_type == "card_model":
-            attributes["model_id"] = data.get("card_model_id")
-
-        # Add system status for motor_power sensor
-        if self._sensor_type == "motor_power":
-            attributes["motor_on"] = data.get("motor_on")
-            attributes["standby_active"] = data.get("standby_active")
-            attributes["pid_mode"] = data.get("pid_mode")
-
-        # Add pressure attributes
-        if self._sensor_type == "pressure_level":
-            attributes["pressure_1"] = data.get("pressure_1")
-            attributes["pressure_2"] = data.get("pressure_2")
-            attributes["pressure_diff"] = data.get("pressure_diff")
-
-        # Add alarm/lock info to relevant sensors
-        if self._sensor_type in ["bag_level", "filter_level"]:
-            if self._sensor_type == "bag_level":
-                attributes["prealarm"] = data.get("prealarm_full_bag")
-                attributes["lock"] = data.get("lock_full_bag")
-            else:
-                attributes["prealarm"] = data.get("prealarm_dirty_filter")
-                attributes["lock"] = data.get("lock_dirty_filter")
-
-        # Add all alarms to temperature sensor
-        if self._sensor_type == "temperature":
-            attributes["prealarm_max_temp"] = data.get("prealarm_max_temp")
-            attributes["lock_max_temperature"] = data.get("lock_max_temperature")
-            attributes["temp_reset_prohibited"] = data.get("temp_reset_prohibited")
-
-        return attributes if attributes else None
+        return attrs_fn(self.coordinator.data)

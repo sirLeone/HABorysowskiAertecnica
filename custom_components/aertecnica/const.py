@@ -3,6 +3,7 @@ from typing import Final
 
 DOMAIN: Final = "aertecnica"
 DEFAULT_NAME: Final = "Aertecnica"
+MANUFACTURER: Final = "Aertecnica"
 
 # Configuration
 CONF_MODBUS_TYPE: Final = "modbus_type"
@@ -24,6 +25,8 @@ DEFAULT_SLAVE_ID: Final = 1
 DEFAULT_SCAN_INTERVAL: Final = 2
 DEFAULT_TIMEOUT: Final = 3
 DEFAULT_BROADCAST_ID: Final = 0
+
+BAUDRATE_OPTIONS: Final = [9600, 19200, 38400, 57600, 115200]
 
 # Serial Configuration
 SERIAL_DATABITS: Final = 8
@@ -50,6 +53,10 @@ REG_MOTOR_POWER: Final = 0x000F
 REG_PRESSURE_SETPOINT: Final = 0x0010
 REG_RESIDUAL_MAX_TIME: Final = 0x0011
 REG_RESET_CONTROL: Final = 0x003F
+
+# Contiguous data block read on every update (0x0000..0x0011)
+DATA_BLOCK_START: Final = REG_CARD_MODEL
+DATA_BLOCK_SIZE: Final = REG_RESIDUAL_MAX_TIME - REG_CARD_MODEL + 1
 
 # Card Models
 CARD_MODELS: Final = {
@@ -102,6 +109,40 @@ RESET_MOTOR_HOURS: Final = 0x0008               # Bit 3
 CONTROL_SERIAL_START: Final = 0x0010            # Bit 4
 CONTROL_SERIAL_STOP: Final = 0x0020             # Bit 5
 
+# Status flag bits mapped to data keys (Register 0x000D)
+SYSTEM_STATUS_BITS: Final[dict[str, int]] = {
+    "micro_line_closed": STATUS_MICRO_LINE_CLOSED,
+    "start_stop_active": STATUS_START_STOP_ACTIVE,
+    "motor_on": STATUS_MOTOR_ON,
+    "standby_active": STATUS_STANDBY_ACTIVE,
+    "temp_reset_prohibited": STATUS_TEMP_RESET_PROHIBITED,
+}
+
+# Pre-alarm bits mapped to data keys with human-readable labels (Register 0x000D)
+PREALARM_BITS: Final[dict[str, tuple[int, str]]] = {
+    "prealarm_max_time": (STATUS_PREALARM_MAX_TIME, "Max Time"),
+    "prealarm_max_pressure": (STATUS_PREALARM_MAX_PRESSURE, "Max Pressure"),
+    "prealarm_num_starts": (STATUS_PREALARM_NUM_STARTS, "Num Starts"),
+    "prealarm_dirty_filter": (STATUS_PREALARM_DIRTY_FILTER, "Dirty Filter"),
+    "prealarm_full_bag": (STATUS_PREALARM_FULL_BAG, "Full Bag"),
+    "prealarm_max_temp": (STATUS_PREALARM_MAX_TEMP, "Max Temperature"),
+    "prealarm_appliance": (STATUS_PREALARM_APPLIANCE, "Appliance"),
+}
+
+# Lock bits mapped to data keys with human-readable labels (Register 0x000E)
+LOCK_BITS: Final[dict[str, tuple[int, str]]] = {
+    "lock_max_time": (LOCK_MAX_TIME, "Max Time"),
+    "lock_max_pressure": (LOCK_MAX_PRESSURE, "Max Pressure"),
+    "lock_num_starts": (LOCK_NUM_STARTS, "Num Starts"),
+    "lock_dirty_filter": (LOCK_DIRTY_FILTER, "Dirty Filter"),
+    "lock_full_bag": (LOCK_FULL_BAG, "Full Bag"),
+    "lock_max_temperature": (LOCK_MAX_TEMPERATURE, "Max Temperature"),
+    "lock_appliance": (LOCK_APPLIANCE, "Appliance"),
+}
+
+PREALARM_ANY_MASK: Final = sum(bit for bit, _ in PREALARM_BITS.values())
+LOCK_ANY_MASK: Final = sum(bit for bit, _ in LOCK_BITS.values())
+
 # Pressure Levels
 PRESSURE_LEVEL_OFF: Final = 0
 PRESSURE_LEVEL_LOW: Final = 1
@@ -113,153 +154,4 @@ PRESSURE_LEVEL_NAMES: Final = {
     PRESSURE_LEVEL_LOW: "Low",
     PRESSURE_LEVEL_OK: "OK",
     PRESSURE_LEVEL_HIGH: "High",
-}
-
-# Entity Configuration
-SENSOR_TYPES: Final = {
-    "card_model": {
-        "name": "Card Model",
-        "register": REG_CARD_MODEL,
-        "unit": None,
-        "device_class": None,
-        "state_class": None,
-        "icon": "mdi:information-outline",
-    },
-    "card_hours": {
-        "name": "Card Hours",
-        "register": REG_CARD_HOURS,
-        "unit": "h",
-        "device_class": None,
-        "state_class": "total_increasing",
-        "icon": "mdi:clock-outline",
-    },
-    "motor_hours": {
-        "name": "Motor Hours",
-        "register": REG_MOTOR_HOURS,
-        "unit": "h",
-        "device_class": None,
-        "state_class": "total_increasing",
-        "icon": "mdi:engine-outline",
-    },
-    "bag_hours": {
-        "name": "Bag Hours",
-        "register": REG_BAG_HOURS,
-        "unit": "h",
-        "device_class": None,
-        "state_class": "total_increasing",
-        "icon": "mdi:air-filter",
-    },
-    "filter_hours": {
-        "name": "Filter Hours",
-        "register": REG_FILTER_HOURS,
-        "unit": "h",
-        "device_class": None,
-        "state_class": "total_increasing",
-        "icon": "mdi:air-filter",
-    },
-    "bag_level": {
-        "name": "Bag Level",
-        "register": REG_BAG_LEVEL,
-        "unit": None,
-        "device_class": None,
-        "state_class": None,
-        "icon": "mdi:delete",
-    },
-    "filter_level": {
-        "name": "Filter Level",
-        "register": REG_FILTER_LEVEL,
-        "unit": None,
-        "device_class": None,
-        "state_class": None,
-        "icon": "mdi:air-filter",
-    },
-    "pressure_level": {
-        "name": "Pressure Level",
-        "register": REG_PRESSURE_LEVEL,
-        "unit": None,
-        "device_class": None,
-        "state_class": None,
-        "icon": "mdi:gauge",
-    },
-    "pressure_1": {
-        "name": "Pressure 1",
-        "register": REG_PRESSURE_1,
-        "unit": "mbar",
-        "device_class": "pressure",
-        "state_class": "measurement",
-        "icon": "mdi:gauge",
-    },
-    "pressure_2": {
-        "name": "Pressure 2",
-        "register": REG_PRESSURE_2,
-        "unit": "mbar",
-        "device_class": "pressure",
-        "state_class": "measurement",
-        "icon": "mdi:gauge",
-    },
-    "pressure_diff": {
-        "name": "Pressure Differential",
-        "register": REG_PRESSURE_DIFF,
-        "unit": "mbar",
-        "device_class": "pressure",
-        "state_class": "measurement",
-        "icon": "mdi:gauge",
-    },
-    "temperature": {
-        "name": "Temperature",
-        "register": REG_TEMPERATURE,
-        "unit": "°C",
-        "device_class": "temperature",
-        "state_class": "measurement",
-        "icon": "mdi:thermometer",
-    },
-    "motor_power": {
-        "name": "Motor Power",
-        "register": REG_MOTOR_POWER,
-        "unit": "%",
-        "device_class": None,
-        "state_class": "measurement",
-        "icon": "mdi:engine",
-    },
-    "pressure_setpoint": {
-        "name": "Pressure Setpoint",
-        "register": REG_PRESSURE_SETPOINT,
-        "unit": "mbar",
-        "device_class": "pressure",
-        "state_class": None,
-        "icon": "mdi:target",
-    },
-    "residual_max_time": {
-        "name": "Residual Max Time",
-        "register": REG_RESIDUAL_MAX_TIME,
-        "unit": None,  # Dynamic: minutes or seconds
-        "device_class": None,
-        "state_class": None,
-        "icon": "mdi:timer-outline",
-    },
-}
-
-# Binary Sensor Types (derived from status registers)
-BINARY_SENSOR_TYPES: Final = {
-    "motor_status": {
-        "name": "Motor Status",
-        "register": REG_SYSTEM_STATUS,
-        "bit": STATUS_MOTOR_ON,
-        "device_class": "running",
-        "icon": "mdi:engine",
-    },
-    "standby_status": {
-        "name": "Standby Status",
-        "register": REG_SYSTEM_STATUS,
-        "bit": STATUS_STANDBY_ACTIVE,
-        "device_class": None,
-        "icon": "mdi:power-sleep",
-    },
-    "micro_line_status": {
-        "name": "Micro Line Closed",
-        "register": REG_SYSTEM_STATUS,
-        "bit": STATUS_MICRO_LINE_CLOSED,
-        "device_class": None,
-        "icon": "mdi:electric-switch-closed",
-    },
 }

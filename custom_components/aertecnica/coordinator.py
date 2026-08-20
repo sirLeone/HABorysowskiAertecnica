@@ -31,7 +31,13 @@ class AertecnicaCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
         """Initialize the coordinator."""
         self.entry = entry
-        scan_interval = entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+
+        # Options (set via the options flow) take precedence over the
+        # value chosen during initial setup.
+        scan_interval = entry.options.get(
+            CONF_SCAN_INTERVAL,
+            entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
+        )
 
         super().__init__(
             hass,
@@ -40,14 +46,9 @@ class AertecnicaCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             update_interval=timedelta(seconds=scan_interval),
         )
 
-        # Initialize Modbus client
-        modbus_type = entry.data[CONF_MODBUS_TYPE]
-        slave_id = entry.data[CONF_SLAVE_ID]
-
         self.client = AertecnicaModbusClient(
-            hass=hass,
-            modbus_type=modbus_type,
-            slave_id=slave_id,
+            modbus_type=entry.data[CONF_MODBUS_TYPE],
+            slave_id=entry.data[CONF_SLAVE_ID],
             host=entry.data.get(CONF_HOST),
             port=entry.data.get(CONF_PORT),
             serial_port=entry.data.get(CONF_SERIAL_PORT),
@@ -71,25 +72,29 @@ class AertecnicaCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     async def async_shutdown(self) -> None:
         """Shutdown the coordinator."""
+        await super().async_shutdown()
         await self.client.disconnect()
+
+    async def _async_write_and_refresh(self, write_ok: bool) -> bool:
+        """Request a refresh after a successful write."""
+        if write_ok:
+            await self.async_request_refresh()
+        return write_ok
 
     async def async_motor_start(self) -> bool:
         """Start the motor."""
-        result = await self.client.write_motor_control(start=True)
-        if result:
-            await self.async_request_refresh()
-        return result
+        return await self._async_write_and_refresh(
+            await self.client.write_motor_control(start=True)
+        )
 
     async def async_motor_stop(self) -> bool:
         """Stop the motor."""
-        result = await self.client.write_motor_control(start=False)
-        if result:
-            await self.async_request_refresh()
-        return result
+        return await self._async_write_and_refresh(
+            await self.client.write_motor_control(start=False)
+        )
 
     async def async_reset_lock(self) -> bool:
         """Reset lock."""
-        result = await self.client.write_reset_lock()
-        if result:
-            await self.async_request_refresh()
-        return result
+        return await self._async_write_and_refresh(
+            await self.client.write_reset_lock()
+        )
