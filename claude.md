@@ -356,7 +356,7 @@ _LOGGER = logging.getLogger(__name__)
 
 ## Licencja
 
-Projekt na licencji MIT (już istnieje w repozytorium).
+Projekt na licencji Apache 2.0 (już istnieje w repozytorium).
 
 ## Kontakt i Wsparcie
 

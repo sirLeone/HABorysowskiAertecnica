@@ -252,7 +252,7 @@ Współpraca jest mile widziana! Zapraszam do przesyłania Pull Requestów.
 
 ## Licencja
 
-Ten projekt jest objęty licencją MIT - zobacz plik [LICENSE](LICENSE) po szczegóły.
+Ten projekt jest objęty licencją Apache 2.0 - zobacz plik [LICENSE](LICENSE) po szczegóły.
 
 ## Podziękowania
 
