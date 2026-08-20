@@ -551,6 +551,6 @@ ERROR: Error reading register 0x0000: Modbus Error: [...]
 
 ---
 
-**Wersja integracji**: 0.1.0
-**Wymagania**: Home Assistant 2023.1+, pymodbus 3.5+
+**Wersja integracji**: 0.9.0 (Beta)
+**Wymagania**: Home Assistant 2024.1+, pymodbus 3.5+
 **Licencja**: MIT
