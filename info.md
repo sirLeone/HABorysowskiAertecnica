@@ -9,9 +9,10 @@ Integracja **Aertecnica Central Vacuum** umożliwia pełną kontrolę i monitoro
 Ta integracja została stworzona w oparciu o oficjalną dokumentację protokołu Modbus firmy Aertecnica i oferuje:
 
 - 🔌 **Wsparcie dla Modbus RTU i TCP** - elastyczność w wyborze metody połączenia
-- 📊 **15 sensorów** - kompleksowe monitorowanie wszystkich parametrów
+- 📊 **15 sensorów + 5 sensorów binarnych** - kompleksowe monitorowanie wszystkich parametrów
 - 🎛️ **Sterowanie silnikiem** - zdalne włączanie/wyłączanie odkurzacza
-- ⚠️ **System alarmów** - prealarmy i blokady dla bezpieczeństwa
+- ⚠️ **System alarmów** - prealarmy i blokady jako sensory binarne typu problem
+- 🔓 **Reset blokad** - przycisk serwisowy kasujący aktywną blokadę
 - 🌍 **Dwujęzyczność** - pełne wsparcie dla języka polskiego i angielskiego
 - 🏠 **Config Flow** - prosta konfiguracja przez interfejs webowy
 - 📦 **HACS** - łatwa instalacja i aktualizacje
@@ -183,7 +184,7 @@ Integracja odczytuje 18 rejestrów Holding (0x0000 - 0x0011):
     - 2 = PID maintenance of pressure setpoint
   - **Bit 2**: Micro Line Status (1=Closed, 0=Open)
   - **Bit 3**: Start Stop Status (1=Start button, 0=Micro line/OFF)
-  - **Bit 4**: Motor Status (1=ON, 0=OFF) → `switch.aertecnica_motor`
+  - **Bit 4**: Motor Status (1=ON, 0=OFF) → `switch.aertecnica_motor`, `binary_sensor.aertecnica_motor_status`
   - **Bit 5**: Disable auto reset (1=Disabled, 0=Enabled)
   - **Bit 6**: Stand By Status (1=Active, 0=Not Active)
   - **Bit 7**: Temperature Reset Control (1=Prohibited, 0=Permitted)
@@ -260,7 +261,7 @@ Integracja odczytuje 18 rejestrów Holding (0x0000 - 0x0011):
    await write_register(0x003F, 0x0020)  # Bit 5 = 1
    ```
 
-3. **Reset blokad** - Przycisk serwisowy (przyszła funkcja)
+3. **Reset blokad** - `button.aertecnica_reset_lock`
    ```python
    await write_register(0x003F, 0x0001)  # Bit 0 = 1
    ```
@@ -289,11 +290,27 @@ Integracja odczytuje 18 rejestrów Holding (0x0000 - 0x0011):
 | `sensor.aertecnica_pressure_setpoint` | Pressure Setpoint | 0x0010 | int | mbar |
 | `sensor.aertecnica_residual_max_time` | Residual Max Time | 0x0011 | float | min/s |
 
+### Sensory binarne (5 encji)
+
+| Entity ID | Nazwa | Rejestr | Bit | Klasa |
+|-----------|-------|---------|-----|-------|
+| `binary_sensor.aertecnica_motor_status` | Motor Status | 0x000D | 4 | running |
+| `binary_sensor.aertecnica_standby_status` | Standby Status | 0x000D | 6 | - |
+| `binary_sensor.aertecnica_micro_line_closed` | Micro Line Closed | 0x000D | 2 | - |
+| `binary_sensor.aertecnica_pre_alarm` | Pre-Alarm | 0x000D | 8-15 | problem |
+| `binary_sensor.aertecnica_lock` | Lock | 0x000E | 0-7 | problem |
+
 ### Przełączniki (1 encja)
 
 | Entity ID | Nazwa | Rejestr zapisu | Funkcja |
 |-----------|-------|----------------|---------|
 | `switch.aertecnica_motor` | Motor | 0x003F | Start/Stop silnika (Bit 4/5) |
+
+### Przyciski (1 encja)
+
+| Entity ID | Nazwa | Rejestr zapisu | Funkcja |
+|-----------|-------|----------------|---------|
+| `button.aertecnica_reset_lock` | Reset Lock | 0x003F | Reset blokad (Bit 0) |
 
 ---
 
@@ -349,7 +366,7 @@ attributes:
 ## Częstotliwość odpytywania
 
 - **Domyślny scan_interval**: 2 sekundy
-- **Konfigurowalne**: 1-60 sekund
+- **Konfigurowalne**: 1-60 sekund (do zmiany w każdej chwili w opcjach integracji: **Ustawienia** → **Urządzenia i usługi** → **Konfiguruj**)
 - **Zgodność z protokołem**: Master wysyła 4 broadcasty/sekundę (normalnie), 1 broadcast/2s (w przypadku blokady)
 
 ---
