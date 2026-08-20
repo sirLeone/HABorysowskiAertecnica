@@ -17,8 +17,9 @@ Integracja Home Assistant dla centralnych odkurzaczy Aertecnica (znanych w Polsc
   - Monitorowanie temperatury
   - Poziomy worka i filtra
 - **Sterowanie silnikiem**: Zdalne włączanie/wyłączanie silnika odkurzacza
-- **System alarmów**: Prealarmy i blokady dla potrzeb konserwacji
-- **Łatwa konfiguracja**: Config flow z konfiguracją przez interfejs UI
+- **System alarmów**: Prealarmy i blokady dla potrzeb konserwacji, dostępne jako sensory binarne typu problem
+- **Konserwacja**: Przycisk resetowania aktywnej blokady
+- **Łatwa konfiguracja**: Config flow z konfiguracją przez interfejs UI, interwał skanowania zmienialny później w opcjach
 - **Zgodność z HACS**: Instalacja bezpośrednio z HACS
 
 ## Obsługiwane modele
@@ -72,6 +73,10 @@ Integracja Home Assistant dla centralnych odkurzaczy Aertecnica (znanych w Polsc
 - **Slave ID**: ID urządzenia (domyślnie: 1)
 - **Interwał skanowania**: Jak często odpytywać urządzenie w sekundach (domyślnie: 2)
 
+### Zmiana opcji
+
+Interwał skanowania można zmienić w dowolnym momencie bez ponownego dodawania integracji: przejdź do **Ustawienia** → **Urządzenia i usługi** → **Aertecnica Central Vacuum** → **Konfiguruj**. Integracja przeładuje się automatycznie po zapisaniu.
+
 ## Encje
 
 ### Sensory
@@ -96,11 +101,27 @@ Integracja tworzy następujące sensory:
 | Pressure Setpoint | Docelowe ustawienie ciśnienia | mbar |
 | Residual Max Time | Pozostały czas pracy | min/s |
 
+### Sensory binarne
+
+| Sensor binarny | Opis |
+|----------------|------|
+| Motor Status | Stan pracy silnika |
+| Standby Status | Aktywny tryb standby |
+| Micro Line Closed | Zamknięty styk mikrolinii |
+| Pre-Alarm | Dowolny aktywny prealarm (problem) |
+| Lock | Dowolna aktywna blokada (problem) |
+
 ### Przełączniki
 
 | Przełącznik | Opis |
 |-------------|------|
 | Motor | Włącz/wyłącz silnik odkurzacza |
+
+### Przyciski
+
+| Przycisk | Opis |
+|----------|------|
+| Reset Lock | Kasuje aktywną blokadę urządzenia |
 
 ### Atrybuty
 
@@ -134,9 +155,8 @@ automation:
   - alias: "Powiadomienie o błędzie odkurzacza"
     trigger:
       - platform: state
-        entity_id: switch.aertecnica_motor
-        attribute: any_lock_active
-        to: true
+        entity_id: binary_sensor.aertecnica_lock
+        to: "on"
     action:
       - service: notify.mobile_app
         data:

@@ -17,8 +17,9 @@ Home Assistant integration for Aertecnica central vacuum systems (known as Borys
   - Temperature monitoring
   - Bag and filter levels
 - **Motor Control**: Start/stop the vacuum motor remotely
-- **Alarm System**: Pre-alarms and locks for maintenance
-- **Easy Configuration**: Config flow with UI setup
+- **Alarm System**: Pre-alarms and locks for maintenance, exposed as problem binary sensors
+- **Maintenance**: Reset lock button to clear active locks
+- **Easy Configuration**: Config flow with UI setup, scan interval adjustable later via options
 - **HACS Compatible**: Install directly from HACS
 
 ## Supported Models
@@ -72,6 +73,10 @@ Home Assistant integration for Aertecnica central vacuum systems (known as Borys
 - **Slave ID**: Device ID (default: 1)
 - **Scan Interval**: How often to poll the device in seconds (default: 2)
 
+### Changing Options
+
+The scan interval can be changed at any time without re-adding the integration: go to **Settings** → **Devices & Services** → **Aertecnica Central Vacuum** → **Configure**. The integration reloads automatically after saving.
+
 ## Entities
 
 ### Sensors
@@ -96,11 +101,27 @@ The integration creates the following sensors:
 | Pressure Setpoint | Target pressure setting | mbar |
 | Residual Max Time | Remaining run time | min/s |
 
+### Binary Sensors
+
+| Binary Sensor | Description |
+|---------------|-------------|
+| Motor Status | Motor running state |
+| Standby Status | Standby mode active |
+| Micro Line Closed | Micro line contact closed |
+| Pre-Alarm | Any pre-alarm active (problem) |
+| Lock | Any lock active (problem) |
+
 ### Switches
 
 | Switch | Description |
 |--------|-------------|
 | Motor | Start/stop the vacuum motor |
+
+### Buttons
+
+| Button | Description |
+|--------|-------------|
+| Reset Lock | Clear an active lock on the unit |
 
 ### Attributes
 
@@ -134,9 +155,8 @@ automation:
   - alias: "Vacuum error notification"
     trigger:
       - platform: state
-        entity_id: switch.aertecnica_motor
-        attribute: any_lock_active
-        to: true
+        entity_id: binary_sensor.aertecnica_lock
+        to: "on"
     action:
       - service: notify.mobile_app
         data:
