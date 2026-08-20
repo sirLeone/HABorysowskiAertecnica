@@ -1,26 +1,12 @@
 name: Release
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/release.json"
+      - ".github/RELEASE_NOTES.md"
   workflow_dispatch:
-    inputs:
-      tag:
-        description: "Release tag (e.g. v0.9.0-beta)"
-        required: true
-        type: string
-      title:
-        description: "Release title"
-        required: true
-        type: string
-      prerelease:
-        description: "Mark as pre-release"
-        required: false
-        type: boolean
-        default: false
-      notes:
-        description: "Release notes (markdown)"
-        required: false
-        type: string
-        default: ""
 
 permissions:
   contents: write
@@ -34,14 +20,19 @@ jobs:
       - name: Create release
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ inputs.tag }}
-          TITLE: ${{ inputs.title }}
-          NOTES: ${{ inputs.notes }}
-          PRERELEASE: ${{ inputs.prerelease }}
         run: |
+          TAG=$(jq -r .tag .github/release.json)
+          TITLE=$(jq -r .title .github/release.json)
+          PRERELEASE=$(jq -r '.prerelease // false' .github/release.json)
+
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $TAG already exists, skipping"
+            exit 0
+          fi
+
           args=(--target "$GITHUB_SHA" --title "$TITLE")
-          if [ -n "$NOTES" ]; then
-            args+=(--notes "$NOTES")
+          if [ -f .github/RELEASE_NOTES.md ]; then
+            args+=(--notes-file .github/RELEASE_NOTES.md)
           else
             args+=(--generate-notes)
           fi
