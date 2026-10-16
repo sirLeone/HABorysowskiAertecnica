@@ -6,10 +6,14 @@ from typing import Any
 
 import voluptuous as vol
 
-from homeassistant import config_entries
+from homeassistant.config_entries import (
+    ConfigEntry,
+    ConfigFlow,
+    ConfigFlowResult,
+    OptionsFlow,
+)
 from homeassistant.const import CONF_NAME
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
 
 from .const import (
@@ -30,6 +34,7 @@ from .const import (
     MODBUS_TYPE_RTU,
     MODBUS_TYPE_TCP,
 )
+from .coordinator import get_scan_interval
 from .modbus_client import AertecnicaModbusClient
 
 _LOGGER = logging.getLogger(__name__)
@@ -94,14 +99,14 @@ async def validate_connection(hass: HomeAssistant, data: dict[str, Any]) -> str:
     return f"{DEFAULT_NAME} ({card_model})"
 
 
-class AertecnicaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+class AertecnicaConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Aertecnica Central Vacuum."""
 
     VERSION = 1
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle the initial step."""
         if user_input is not None:
             if user_input[CONF_MODBUS_TYPE] == MODBUS_TYPE_RTU:
@@ -127,7 +132,7 @@ class AertecnicaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         unique_id: str,
         user_input: dict[str, Any],
         errors: dict[str, str],
-    ) -> FlowResult | None:
+    ) -> ConfigFlowResult | None:
         """Validate the connection and create the entry.
 
         Returns None and fills in errors when validation fails.
@@ -151,7 +156,7 @@ class AertecnicaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_rtu(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle RTU configuration step."""
         errors: dict[str, str] = {}
 
@@ -171,7 +176,7 @@ class AertecnicaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_tcp(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle TCP configuration step."""
         errors: dict[str, str] = {}
 
@@ -192,16 +197,16 @@ class AertecnicaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     @staticmethod
     @callback
     def async_get_options_flow(
-        config_entry: config_entries.ConfigEntry,
+        config_entry: ConfigEntry,
     ) -> AertecnicaOptionsFlowHandler:
         """Get the options flow for this handler."""
         return AertecnicaOptionsFlowHandler(config_entry)
 
 
-class AertecnicaOptionsFlowHandler(config_entries.OptionsFlow):
+class AertecnicaOptionsFlowHandler(OptionsFlow):
     """Handle options flow for Aertecnica."""
 
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+    def __init__(self, config_entry: ConfigEntry) -> None:
         """Initialize options flow."""
         # Deliberately not assigned to self.config_entry: that assignment is
         # deprecated and removed in Home Assistant 2025.12.
@@ -209,15 +214,12 @@ class AertecnicaOptionsFlowHandler(config_entries.OptionsFlow):
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Manage the options."""
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
 
-        current_scan_interval = self._entry.options.get(
-            CONF_SCAN_INTERVAL,
-            self._entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
-        )
+        current_scan_interval = get_scan_interval(self._entry)
 
         data_schema = vol.Schema(
             {

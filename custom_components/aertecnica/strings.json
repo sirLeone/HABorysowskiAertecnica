@@ -49,5 +49,81 @@
         }
       }
     }
+  },
+  "entity": {
+    "sensor": {
+      "card_model": {
+        "name": "Card Model"
+      },
+      "card_hours": {
+        "name": "Card Hours"
+      },
+      "motor_hours": {
+        "name": "Motor Hours"
+      },
+      "bag_hours": {
+        "name": "Bag Hours"
+      },
+      "filter_hours": {
+        "name": "Filter Hours"
+      },
+      "bag_level": {
+        "name": "Bag Level"
+      },
+      "filter_level": {
+        "name": "Filter Level"
+      },
+      "pressure_level": {
+        "name": "Pressure Level"
+      },
+      "pressure_1": {
+        "name": "Pressure 1"
+      },
+      "pressure_2": {
+        "name": "Pressure 2"
+      },
+      "pressure_diff": {
+        "name": "Pressure Differential"
+      },
+      "temperature": {
+        "name": "Temperature"
+      },
+      "motor_power": {
+        "name": "Motor Power"
+      },
+      "pressure_setpoint": {
+        "name": "Pressure Setpoint"
+      },
+      "residual_max_time": {
+        "name": "Residual Max Time"
+      }
+    },
+    "binary_sensor": {
+      "motor_status": {
+        "name": "Motor Status"
+      },
+      "standby_status": {
+        "name": "Standby Status"
+      },
+      "micro_line_status": {
+        "name": "Micro Line Closed"
+      },
+      "any_prealarm": {
+        "name": "Pre-Alarm"
+      },
+      "any_lock": {
+        "name": "Lock"
+      }
+    },
+    "switch": {
+      "motor": {
+        "name": "Motor"
+      }
+    },
+    "button": {
+      "reset_lock": {
+        "name": "Reset Lock"
+      }
+    }
   }
 }

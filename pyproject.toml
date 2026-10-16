@@ -1,0 +1,11 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+
+[tool.ruff]
+target-version = "py312"
+extend-exclude = ["Modbus_English.pdf"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "UP", "B", "SIM"]
+ignore = ["E501"]

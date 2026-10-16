@@ -49,5 +49,81 @@
         }
       }
     }
+  },
+  "entity": {
+    "sensor": {
+      "card_model": {
+        "name": "Model karty"
+      },
+      "card_hours": {
+        "name": "Godziny pracy karty"
+      },
+      "motor_hours": {
+        "name": "Godziny pracy silnika"
+      },
+      "bag_hours": {
+        "name": "Godziny użytkowania worka"
+      },
+      "filter_hours": {
+        "name": "Godziny użytkowania filtra"
+      },
+      "bag_level": {
+        "name": "Poziom worka"
+      },
+      "filter_level": {
+        "name": "Poziom filtra"
+      },
+      "pressure_level": {
+        "name": "Poziom ciśnienia"
+      },
+      "pressure_1": {
+        "name": "Ciśnienie 1"
+      },
+      "pressure_2": {
+        "name": "Ciśnienie 2"
+      },
+      "pressure_diff": {
+        "name": "Różnica ciśnień"
+      },
+      "temperature": {
+        "name": "Temperatura"
+      },
+      "motor_power": {
+        "name": "Moc silnika"
+      },
+      "pressure_setpoint": {
+        "name": "Nastawa ciśnienia"
+      },
+      "residual_max_time": {
+        "name": "Pozostały czas pracy"
+      }
+    },
+    "binary_sensor": {
+      "motor_status": {
+        "name": "Stan silnika"
+      },
+      "standby_status": {
+        "name": "Tryb standby"
+      },
+      "micro_line_status": {
+        "name": "Mikrolinia zamknięta"
+      },
+      "any_prealarm": {
+        "name": "Prealarm"
+      },
+      "any_lock": {
+        "name": "Blokada"
+      }
+    },
+    "switch": {
+      "motor": {
+        "name": "Silnik"
+      }
+    },
+    "button": {
+      "reset_lock": {
+        "name": "Reset blokady"
+      }
+    }
   }
 }

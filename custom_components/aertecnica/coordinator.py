@@ -25,25 +25,27 @@ from .modbus_client import AertecnicaModbusClient
 _LOGGER = logging.getLogger(__name__)
 
 
+def get_scan_interval(entry: ConfigEntry) -> int:
+    """Return the scan interval, preferring options over the initial setup data."""
+    return entry.options.get(
+        CONF_SCAN_INTERVAL,
+        entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
+    )
+
+
 class AertecnicaCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """Class to manage fetching Aertecnica data."""
 
+    config_entry: ConfigEntry
+
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
         """Initialize the coordinator."""
-        self.entry = entry
-
-        # Options (set via the options flow) take precedence over the
-        # value chosen during initial setup.
-        scan_interval = entry.options.get(
-            CONF_SCAN_INTERVAL,
-            entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
-        )
-
         super().__init__(
             hass,
             _LOGGER,
+            config_entry=entry,
             name=DOMAIN,
-            update_interval=timedelta(seconds=scan_interval),
+            update_interval=timedelta(seconds=get_scan_interval(entry)),
         )
 
         self.client = AertecnicaModbusClient(
@@ -63,7 +65,6 @@ class AertecnicaCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 raise UpdateFailed("Failed to connect to Modbus device")
 
         data = await self.client.read_all_data()
-
         if data is None:
             raise UpdateFailed("Failed to read data from Modbus device")
 
@@ -71,30 +72,24 @@ class AertecnicaCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         return data
 
     async def async_shutdown(self) -> None:
-        """Shutdown the coordinator."""
+        """Shutdown the coordinator and close the Modbus connection."""
         await super().async_shutdown()
         await self.client.disconnect()
 
-    async def _async_write_and_refresh(self, write_ok: bool) -> bool:
-        """Request a refresh after a successful write."""
+    async def _async_write(self, write_ok: bool) -> bool:
+        """Refresh device data after a successful write."""
         if write_ok:
             await self.async_request_refresh()
         return write_ok
 
     async def async_motor_start(self) -> bool:
         """Start the motor."""
-        return await self._async_write_and_refresh(
-            await self.client.write_motor_control(start=True)
-        )
+        return await self._async_write(await self.client.write_motor_control(True))
 
     async def async_motor_stop(self) -> bool:
         """Stop the motor."""
-        return await self._async_write_and_refresh(
-            await self.client.write_motor_control(start=False)
-        )
+        return await self._async_write(await self.client.write_motor_control(False))
 
     async def async_reset_lock(self) -> bool:
-        """Reset lock."""
-        return await self._async_write_and_refresh(
-            await self.client.write_reset_lock()
-        )
+        """Reset an active lock."""
+        return await self._async_write(await self.client.write_reset_lock())

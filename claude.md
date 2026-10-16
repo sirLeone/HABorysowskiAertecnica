@@ -16,7 +16,7 @@ Stworzenie pełnowartościowej integracji Home Assistant, która pozwoli na:
 ## Wymagania Techniczne
 
 ### Home Assistant
-- Kompatybilność z Home Assistant Core 2023.1+
+- Kompatybilność z Home Assistant Core 2024.11+
 - Wsparcie dla Home Assistant OS, Supervised, Container i Core
 - Zgodność z Config Flow (konfiguracja przez UI)
 
@@ -386,7 +386,7 @@ Projekt na licencji Apache 2.0 (już istnieje w repozytorium).
 
 ### Wymagane Biblioteki Python
 - `pymodbus>=3.0.0` - komunikacja Modbus
-- `homeassistant>=2023.1.0` - API Home Assistant
+- `homeassistant>=2024.11.0` - API Home Assistant
 
 ### Testowanie Lokalne
 ```bash

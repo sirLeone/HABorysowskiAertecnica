@@ -2,5 +2,5 @@
   "name": "Aertecnica Central Vacuum",
   "render_readme": true,
   "domains": ["binary_sensor", "button", "sensor", "switch"],
-  "homeassistant": "2024.1.0"
+  "homeassistant": "2024.11.0"
 }

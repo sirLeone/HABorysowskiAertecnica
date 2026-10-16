@@ -3,42 +3,43 @@ from __future__ import annotations
 
 import logging
 
-from homeassistant.components.button import ButtonEntity
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.components.button import ButtonEntity, ButtonEntityDescription
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN
+from . import AertecnicaConfigEntry
 from .coordinator import AertecnicaCoordinator
 from .entity import AertecnicaEntity
 
 _LOGGER = logging.getLogger(__name__)
 
+RESET_LOCK_BUTTON = ButtonEntityDescription(
+    key="reset_lock",
+    translation_key="reset_lock",
+    icon="mdi:lock-reset",
+)
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: AertecnicaConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Aertecnica buttons."""
-    coordinator: AertecnicaCoordinator = hass.data[DOMAIN][entry.entry_id]
-
-    async_add_entities([AertecnicaResetLockButton(coordinator, entry)])
+    async_add_entities([AertecnicaResetLockButton(entry.runtime_data, entry)])
 
 
 class AertecnicaResetLockButton(AertecnicaEntity, ButtonEntity):
     """Button that resets an active lock on the vacuum unit."""
 
-    _attr_icon = "mdi:lock-reset"
-
     def __init__(
         self,
         coordinator: AertecnicaCoordinator,
-        entry: ConfigEntry,
+        entry: AertecnicaConfigEntry,
     ) -> None:
         """Initialize the button."""
-        super().__init__(coordinator, entry, "reset_lock", "Reset Lock")
+        super().__init__(coordinator, entry, RESET_LOCK_BUTTON)
 
     async def async_press(self) -> None:
         """Send the reset lock command."""

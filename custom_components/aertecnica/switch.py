@@ -4,70 +4,72 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from homeassistant.components.switch import SwitchEntity
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN, LOCK_BITS, PREALARM_BITS
+from . import AertecnicaConfigEntry
+from .const import LOCK_BITS, PREALARM_BITS
 from .coordinator import AertecnicaCoordinator
 from .entity import AertecnicaEntity
 
 _LOGGER = logging.getLogger(__name__)
 
+MOTOR_SWITCH = SwitchEntityDescription(
+    key="motor",
+    translation_key="motor",
+    icon="mdi:fan",
+)
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: AertecnicaConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Aertecnica switches."""
-    coordinator: AertecnicaCoordinator = hass.data[DOMAIN][entry.entry_id]
-
-    async_add_entities([AertecnicaMotorSwitch(coordinator, entry)])
+    async_add_entities([AertecnicaMotorSwitch(entry.runtime_data, entry)])
 
 
 class AertecnicaMotorSwitch(AertecnicaEntity, SwitchEntity):
     """Representation of an Aertecnica motor switch."""
 
-    _attr_icon = "mdi:fan"
-
     def __init__(
         self,
         coordinator: AertecnicaCoordinator,
-        entry: ConfigEntry,
+        entry: AertecnicaConfigEntry,
     ) -> None:
         """Initialize the switch."""
-        super().__init__(coordinator, entry, "motor_switch", "Motor")
+        # unique_id suffix kept from earlier releases
+        super().__init__(coordinator, entry, MOTOR_SWITCH, unique_id_key="motor_switch")
 
     @property
     def is_on(self) -> bool | None:
         """Return true if the motor is on."""
         if not self.coordinator.data:
             return None
-
         return self.coordinator.data.get("motor_on", False)
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the motor on."""
         _LOGGER.debug("Turning on Aertecnica motor")
         if not await self.coordinator.async_motor_start():
-            _LOGGER.error("Failed to turn on motor")
+            raise HomeAssistantError("Failed to send motor start command")
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the motor off."""
         _LOGGER.debug("Turning off Aertecnica motor")
         if not await self.coordinator.async_motor_stop():
-            _LOGGER.error("Failed to turn off motor")
+            raise HomeAssistantError("Failed to send motor stop command")
 
     @property
     def extra_state_attributes(self) -> dict[str, Any] | None:
         """Return additional state attributes."""
-        if not self.coordinator.data:
+        if not (data := self.coordinator.data):
             return None
 
-        data = self.coordinator.data
-        attributes = {
+        attributes: dict[str, Any] = {
             "motor_power": data.get("motor_power"),
             "standby_active": data.get("standby_active"),
             "start_stop_active": data.get("start_stop_active"),

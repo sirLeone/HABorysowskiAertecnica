@@ -1,67 +1,72 @@
 """Binary sensor platform for Aertecnica Central Vacuum."""
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
     BinarySensorEntityDescription,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN
+from . import AertecnicaConfigEntry
 from .coordinator import AertecnicaCoordinator
 from .entity import AertecnicaEntity
 
-BINARY_SENSOR_DESCRIPTIONS: tuple[BinarySensorEntityDescription, ...] = (
-    BinarySensorEntityDescription(
+
+@dataclass(frozen=True, kw_only=True)
+class AertecnicaBinarySensorEntityDescription(BinarySensorEntityDescription):
+    """Describes an Aertecnica binary sensor."""
+
+    data_key: str
+
+
+BINARY_SENSOR_DESCRIPTIONS: tuple[AertecnicaBinarySensorEntityDescription, ...] = (
+    AertecnicaBinarySensorEntityDescription(
         key="motor_status",
-        name="Motor Status",
+        translation_key="motor_status",
+        data_key="motor_on",
         device_class=BinarySensorDeviceClass.RUNNING,
         icon="mdi:engine",
     ),
-    BinarySensorEntityDescription(
+    AertecnicaBinarySensorEntityDescription(
         key="standby_status",
-        name="Standby Status",
+        translation_key="standby_status",
+        data_key="standby_active",
         icon="mdi:power-sleep",
     ),
-    BinarySensorEntityDescription(
+    AertecnicaBinarySensorEntityDescription(
         key="micro_line_status",
-        name="Micro Line Closed",
+        translation_key="micro_line_status",
+        data_key="micro_line_closed",
         icon="mdi:electric-switch-closed",
     ),
-    BinarySensorEntityDescription(
+    AertecnicaBinarySensorEntityDescription(
         key="any_prealarm",
-        name="Pre-Alarm",
+        translation_key="any_prealarm",
+        data_key="any_prealarm_active",
         device_class=BinarySensorDeviceClass.PROBLEM,
         icon="mdi:alert-outline",
     ),
-    BinarySensorEntityDescription(
+    AertecnicaBinarySensorEntityDescription(
         key="any_lock",
-        name="Lock",
+        translation_key="any_lock",
+        data_key="any_lock_active",
         device_class=BinarySensorDeviceClass.PROBLEM,
         icon="mdi:lock-alert-outline",
     ),
 )
 
-# Binary sensor key -> coordinator data key
-DATA_KEYS = {
-    "motor_status": "motor_on",
-    "standby_status": "standby_active",
-    "micro_line_status": "micro_line_closed",
-    "any_prealarm": "any_prealarm_active",
-    "any_lock": "any_lock_active",
-}
-
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: AertecnicaConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Aertecnica binary sensors."""
-    coordinator: AertecnicaCoordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator = entry.runtime_data
 
     async_add_entities(
         AertecnicaBinarySensor(coordinator, entry, description)
@@ -72,20 +77,20 @@ async def async_setup_entry(
 class AertecnicaBinarySensor(AertecnicaEntity, BinarySensorEntity):
     """Representation of an Aertecnica binary sensor."""
 
+    entity_description: AertecnicaBinarySensorEntityDescription
+
     def __init__(
         self,
         coordinator: AertecnicaCoordinator,
-        entry: ConfigEntry,
-        description: BinarySensorEntityDescription,
+        entry: AertecnicaConfigEntry,
+        description: AertecnicaBinarySensorEntityDescription,
     ) -> None:
         """Initialize the binary sensor."""
-        super().__init__(coordinator, entry, description.key, description.name)
-        self.entity_description = description
-        self._data_key = DATA_KEYS[description.key]
+        super().__init__(coordinator, entry, description)
 
     @property
     def is_on(self) -> bool | None:
         """Return the state of the binary sensor."""
         if not self.coordinator.data:
             return None
-        return self.coordinator.data.get(self._data_key)
+        return self.coordinator.data.get(self.entity_description.data_key)
