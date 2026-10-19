@@ -1,26 +1,24 @@
-## Aertecnica Central Vacuum 0.9.0 Beta
+## Aertecnica Central Vacuum 0.9.1
 
-First beta release of the integration.
+Bug-fix release. **Upgrading is strongly recommended**: on current Home Assistant releases version 0.9.0 could not talk to the device at all.
 
-### Bug fixes
+### Bugs fixed
 
-- Scan interval configured via the options flow is now actually applied — the integration reloads automatically when options change.
-- Options flow works on current Home Assistant versions (removed the deprecated `config_entry` assignment, dropped in HA 2025.12).
-- Config flow now distinguishes connection failures from unexpected errors.
+- **No communication with the device on current Home Assistant (critical).** pymodbus 3.10 renamed the unit-id keyword from `slave=` to `device_id=`. Home Assistant 2025.x and newer ship pymodbus 3.10+, so every register read and write failed with `TypeError`, the integration never got past setup and all entities stayed unavailable. The client now detects which keyword the installed pymodbus accepts and works with both old (3.5–3.9) and new (3.10+) versions.
+- **Failed motor start/stop was silent.** When the write to the control register failed, the switch only logged an error and the UI showed nothing. The switch now raises an error that Home Assistant displays, matching the Reset Lock button.
+- **Coordinator relied on an implicit config entry.** The data coordinator was created without its config entry, which Home Assistant flags as deprecated and will stop supporting in 2026.8. The entry is now passed explicitly.
 
-### New features
+### Improvements
 
-- **Binary sensors**: Motor Status, Standby Status, Micro Line Closed, plus Pre-Alarm and Lock problem sensors.
-- **Button**: Reset Lock — clears an active lock on the unit.
+- Entity names are translated (English and Polish) via Home Assistant translation keys instead of hardcoded English strings. Entity IDs and unique IDs are unchanged, so existing automations and history keep working.
+- Register parsing is a pure, unit-tested function; Modbus error handling is shared between reads and writes.
+- Integration state is stored in `entry.runtime_data`, as recommended for current Home Assistant.
 
-### Refactoring
+### Testing and tooling
 
-- Shared base entity class (device info, naming; unique IDs unchanged).
-- Declarative `SensorEntityDescription`-based sensor definitions with HA unit and device-class enums.
-- Table-driven Modbus register and status-bit parsing; magic numbers replaced with constants derived from the register map.
-- Deduplicated RTU/TCP config-flow validation; removed dead code.
+- New automated test suite covering register parsing, the Modbus client wrapper, the config and options flows, integration setup, services and option reloads. Verified against Home Assistant 2026.2 with pymodbus 3.16 and against Home Assistant 2024.12 with pymodbus 3.8.
+- GitHub Actions CI runs ruff and the test suite on every push and pull request.
 
-### Notes
+### Requirements
 
-- Requires Home Assistant 2024.1+ and pymodbus 3.5+.
-- Beta: implemented against the Aertecnica Modbus specification — feedback from real hardware is welcome, please report issues.
+- Minimum Home Assistant version is now **2024.11** (first release whose data coordinator accepts the config entry explicitly). pymodbus 3.5 or newer.
